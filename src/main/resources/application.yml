@@ -40,6 +40,11 @@ jwt:
 frontend-app:
    entry: /index.html
 
+# 관리자 계정
+admins:
+   - 55XXXXXX
+   - 57XXXXXX
+
 my-props:    
    name:
       point: 200

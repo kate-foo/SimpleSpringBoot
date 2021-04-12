@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +39,26 @@ public class RestHomeController {
 		}				
 				
 		return ResponseEntity.ok(nickname);
+    }
+	
+	@PreAuthorize(value="ROLE_ADMIN")
+	@RequestMapping(value="/api/admin/hello")
+    public ResponseEntity<String> testAdmin(HttpServletResponse resp, Principal principal) throws IOException {
+		
+		String nickname = "Annonymous";
+		
+		if (!principal.getName().isEmpty()) {
+			OAuth2User user = (OAuth2User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+			nickname = user.getAttribute("nickname").toString();
+			
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(nickname);
+				user.getAuthorities().forEach(auth -> logger.debug(auth));
+			}		
+		}				
+		
+		return ResponseEntity.ok(nickname + "(ADMIN)");
     }
 
 	

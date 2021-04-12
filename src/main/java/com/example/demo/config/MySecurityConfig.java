@@ -37,8 +37,11 @@ public class MySecurityConfig extends WebSecurityConfigurerAdapter {
 		     .antMatchers("/index.html").permitAll()
 		     .antMatchers("/static/**").permitAll() // 리액트 애플리케이션에도 static 폴더가 생기므로 허용한다.
 		     .antMatchers("/oauth2Login").permitAll()
-		     .anyRequest().authenticated()
-		     .and()
+		     .antMatchers("/api/admin/**").hasRole("ADMIN")
+		     .anyRequest()
+		        .hasAnyRole("USER", "ADMIN")
+		        //.authenticated()
+		        .and()
 		 .csrf().disable() // 활성화하면 로그아웃시 POST 메소드로 해야 한다!
 		 .oauth2Login()
 		    .loginPage("/oauth2Login")

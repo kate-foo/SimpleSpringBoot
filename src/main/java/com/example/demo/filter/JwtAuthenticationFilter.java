@@ -25,6 +25,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.demo.config.AdminConfig;
 import com.example.demo.utils.CookieUtils;
 import com.example.demo.utils.JwtUtils;
 
@@ -44,6 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
 	@Autowired
 	private JwtUtils jwtUtils;
+	
+	@Autowired
+	private AdminConfig adminConfig;
 	
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -99,10 +103,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				// JWT를 만들 때 사용자 고유 ID로 삼았던 필드명과 맞춘다.
 				String userNameAttributeName = "sub";
 				
-				//TODO
+				// TODO
 				// 권한은 JWT에 저장하지 않기로 했는데?
 				List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-				authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+				
+				// TODO 일반 사용자 권한은 ROLE_USER로 통일하고 
+				// 관리자 권한은 관리자 sub를 별도로 저장해놓고 해당 sub가 접속하면 관리자 권한을 주도록 해보자.
+				
+				List<String> admins = adminConfig.getAdmins();
+				if (logger.isDebugEnabled()) {
+					admins.forEach(admin -> logger.debug(admin));					
+				}
+				
+				boolean isAdmin = admins.stream().anyMatch(a -> a.equals(attributes.get("sub")));				
+				
+				if (isAdmin) {
+					authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));	
+				} else {
+					authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+				}
 				
 				OAuth2User userDetails = new DefaultOAuth2User(authorities, attributes, userNameAttributeName);				
 				OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(userDetails, authorities, userNameAttributeName);
